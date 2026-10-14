@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Grid: Infiltration Protocol - Tactical Matrix Roguelike</title>
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <style>
+        :root {
+            --bg-dark: #050811;
+            --surface: #0b132b;
+            --card-surface: #111c3a;
+            --border: #1e293b;
+            --cyan: #00f0ff;
+            --emerald: #00ff88;
+            --amber: #ffb300;
+            --crimson: #ff3366;
+            --violet: #a855f7;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .header {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .banner-img {
+            width: 100%;
+            max-width: 900px;
+            height: auto;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.15);
+        }
+
+        .pill-badge {
+            display: inline-block;
+            background: rgba(0, 240, 255, 0.12);
+            color: var(--cyan);
+            border: 1px solid var(--cyan);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            color: var(--cyan);
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: var(--violet);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .dev-badge {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .btn-primary {
+            background: var(--cyan);
+            color: var(--bg-dark);
+            font-weight: 800;
+            font-size: 14px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 240, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 14px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .btn-secondary:hover {
+            border-color: var(--cyan);
+        }
+
+        /* --- INTERACTIVE CANVAS GAME CONTAINER --- */
+        .game-wrapper {
+            width: 100%;
+            max-width: 520px;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.7);
+            margin-bottom: 40px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-surface);
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-surface);
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .combat-log {
+            background: rgba(11, 19, 43, 0.8);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--amber);
+            margin-bottom: 12px;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #cyberCanvas {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: var(--bg-dark);
+            border-radius: 14px;
+            border: 1.5px solid var(--border);
+            display: block;
+            touch-action: none;
+            cursor: pointer;
+        }
+
+        .action-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .action-chip {
+            background: var(--card-surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 4px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s ease;
+        }
+        .action-chip.active {
+            border-color: var(--cyan);
+            background: rgba(0, 240, 255, 0.18);
+        }
+        .action-chip .title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+        .action-chip .cost {
+            font-size: 9px;
+            font-family: monospace;
+            color: var(--text-muted);
+        }
+        .action-chip.active .title,
+        .action-chip.active .cost {
+            color: var(--cyan);
+        }
+
+        .btn-end-turn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--card-surface);
+            color: var(--text-primary);
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .btn-end-turn.highlight {
+            background: var(--cyan);
+            color: var(--bg-dark);
+            border-color: var(--cyan);
+        }
+
+        /* --- SCREENSHOTS GALLERY --- */
+        .showcase-section {
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 40px;
+        }
+        .section-title {
+            color: var(--cyan);
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        .screenshots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .shot-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+        .shot-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            width: 100%;
+            max-width: 900px;
+            border-top: 1px solid var(--border);
+            padding-top: 24px;
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        footer a {
+            color: var(--cyan);
+            text-decoration: none;
+            margin: 0 8px;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <img src="assets/banner.png" alt="Cyber Grid Banner" class="banner-img">
+        <span class="pill-badge">TACTICAL MATRIX ROGUELIKE</span>
+        <h1>CYBER GRID</h1>
+        <div class="subtitle">INFILTRATION PROTOCOL</div>
+        <div class="dev-badge">Crafted with Excellence by <strong>Lalith Madanayake</strong> • Colombo, Sri Lanka</div>
+
+        <div class="cta-buttons">
+            <a href="CyberGrid-1.0.0-release.apk" class="btn-primary" download>
+                📥 Download Release APK (v1.0.0)
+            </a>
+            <a href="privacy.html" class="btn-secondary">
+                🛡 Privacy Policy
+            </a>
+            <button class="btn-secondary" onclick="document.getElementById('gameArea').scrollIntoView({behavior: 'smooth'})">
+                🎮 Play Web / iOS Demo
+            </button>
+        </div>
+    </header>
+
+    <!-- LIVE HTML5 / IOS TOUCH GAME -->
+    <section class="game-wrapper" id="gameArea">
+        <div class="game-header">
+            <div><strong style="color:var(--cyan)">SECTOR 01 // DATA VAULT</strong></div>
+            <div id="chipsCount" style="color:var(--amber)">💾 0 CHIPS</div>
+        </div>
+
+        <div class="hud-row">
+            <div style="color:var(--crimson)">♥ HP: <span id="hpVal">6/6</span></div>
+            <div style="color:var(--cyan)">🛡 SHIELD: <span id="shieldVal">1</span></div>
+            <div style="color:var(--emerald)">⚡ ENERGY: <span id="energyVal">3/3</span></div>
+            <div style="color:var(--cyan)">AP: <span id="apVal">2/2</span></div>
+        </div>
+
+        <div class="combat-log" id="combatLog">
+            SELECT TACTICAL ACTION // ENEMY VECTORS TELEGRAPHED
+        </div>
+
+        <canvas id="cyberCanvas" width="480" height="480"></canvas>
+
+        <div class="action-bar">
+            <div class="action-chip active" id="chip-move" onclick="selectAction('MOVE')">
+                <div class="title">DASH</div>
+                <div class="cost">1 AP</div>
+            </div>
+            <div class="action-chip" id="chip-blade" onclick="selectAction('BLADE')">
+                <div class="title">BLADE</div>
+                <div class="cost">1 AP</div>
+            </div>
+            <div class="action-chip" id="chip-emp" onclick="selectAction('EMP')">
+                <div class="title">EMP</div>
+                <div class="cost">1 AP</div>
+            </div>
+            <div class="action-chip" id="chip-phase" onclick="selectAction('PHASE')">
+                <div class="title">PHASE</div>
+                <div class="cost">1 AP</div>
+            </div>
+            <div class="action-chip" id="chip-overclock" onclick="selectAction('OVERCLOCK')">
+                <div class="title">OVERCLOCK</div>
+                <div class="cost">⚡ 1</div>
+            </div>
+        </div>
+
+        <button class="btn-end-turn" id="endTurnBtn" onclick="endTurn()">
+            ▶ EXECUTE ENEMY TURN
+        </button>
+    </section>
+
+    <!-- SCREENSHOTS SHOWCASE -->
+    <section class="showcase-section">
+        <div class="section-title">TACTICAL GAMEPLAY SHOWCASE</div>
+        <div class="screenshots-grid">
+            <div class="shot-card"><img src="assets/screenshot_01_matrix_combat.png" alt="Telegraphed Matrix Combat"></div>
+            <div class="shot-card"><img src="assets/screenshot_02_kinetic_knockback.png" alt="Kinetic Knockback"></div>
+            <div class="shot-card"><img src="assets/screenshot_03_tactical_arsenal.png" alt="Tactical Arsenal"></div>
+            <div class="shot-card"><img src="assets/screenshot_04_apex_titans.png" alt="Apex Titans"></div>
+            <div class="shot-card"><img src="assets/screenshot_05_tactical_guide.png" alt="Tactical Guide"></div>
+            <div class="shot-card"><img src="assets/screenshot_06_premium_offline.png" alt="100% Offline Premium"></div>
+        </div>
+    </section>
+
+    <footer>
+        <p><strong>Cyber Grid: Infiltration Protocol</strong> • Developed by <strong>Lalith Madanayake</strong></p>
+        <p>Email: <a href="mailto:lmadanayake@gmail.com">lmadanayake@gmail.com</a> | Phone: <a href="tel:+94777210775">+94 77 721 0775</a></p>
+        <p style="margin-top: 10px;">
+            <a href="privacy.html">Privacy Policy</a> • 
+            <a href="privacy-policy.html">Legal Compliance</a> • 
+            <span>100% Ad-Free • Target SDK 36</span>
+        </p>
+        <p style="margin-top: 6px; color: var(--text-muted)">© 2026 Lalith Madanayake. All Rights Reserved.</p>
+    </footer>
+
+    <!-- EMBEDDED JAVASCRIPT GAME ENGINE -->
+    <script>
+        const canvas = document.getElementById('cyberCanvas');
+        const ctx = canvas.getContext('2d');
+        const GRID_SIZE = 7;
+        const CELL_SIZE = canvas.width / GRID_SIZE;
+
+        // Audio Synth
+        let audioCtx = null;
+        function playTone(freq, type, duration, vol=0.2) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function soundSlash() { playTone(880, 'sawtooth', 0.15, 0.25); }
+        function soundLaser() { playTone(1400, 'sine', 0.2, 0.25); }
+        function soundImpact() { playTone(80, 'triangle', 0.28, 0.4); }
+        function soundClick() { playTone(600, 'sine', 0.04, 0.15); }
+        function soundEmp() { playTone(300, 'square', 0.2, 0.2); }
+
+        // Game State
+        let player = { x: 3, y: 5, hp: 6, maxHp: 6, shield: 1, energy: 3, maxEnergy: 3, ap: 2, chips: 0 };
+        let selectedAction = 'MOVE';
+        let turn = 1;
+
+        let enemies = [
+            { id: 1, type: 'scout', name: 'Scout Drone', x: 2, y: 1, hp: 2, maxHp: 2, atk: 1, intentTargets: [{x: 2, y: 2}], stunned: false },
+            { id: 2, type: 'sentinel', name: 'Laser Sentinel', x: 4, y: 1, hp: 3, maxHp: 3, atk: 2, intentTargets: [{x: 4, y: 2}, {x: 4, y: 3}, {x: 4, y: 4}, {x: 4, y: 5}], stunned: false }
+        ];
+
+        let boardTiles = [
+            { x: 2, y: 2, type: 'terminal' },
+            { x: 2, y: 4, type: 'energy' }
+        ];
+
+        function updateEnemyIntents() {
+            enemies.forEach(e => {
+                if (e.stunned) { e.intentTargets = []; return; }
+                if (e.type === 'scout') {
+                    // Step toward player
+                    const dx = Math.sign(player.x - e.x);
+                    const dy = Math.sign(player.y - e.y);
+                    const tx = Math.abs(player.x - e.x) >= Math.abs(player.y - e.y) ? e.x + dx : e.x;
+                    const ty = Math.abs(player.x - e.x) < Math.abs(player.y - e.y) ? e.y + dy : e.y;
+                    e.intentTargets = [{x: tx, y: ty}];
+                } else if (e.type === 'sentinel') {
+                    // Line of laser fire down
+                    const line = [];
+                    for (let y = e.y + 1; y < GRID_SIZE; y++) line.push({x: e.x, y: y});
+                    e.intentTargets = line;
+                }
+            });
+        }
+
+        function getValidTargets() {
+            const list = [];
+            if (player.ap <= 0 && selectedAction !== 'OVERCLOCK') return list;
+
+            if (selectedAction === 'MOVE') {
+                for (let dy = -2; dy <= 2; dy++) {
+                    for (let dx = -2; dx <= 2; dx++) {
+                        const dist = Math.abs(dx) + Math.abs(dy);
+                        if (dist >= 1 && dist <= 2) {
+                            const tx = player.x + dx, ty = player.y + dy;
+                            if (tx >= 0 && tx < GRID_SIZE && ty >= 0 && ty < GRID_SIZE) {
+                                if (!enemies.some(e => e.hp > 0 && e.x === tx && e.y === ty)) {
+                                    list.push({x: tx, y: ty});
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (selectedAction === 'BLADE') {
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        if (Math.abs(dx) + Math.abs(dy) === 1) {
+                            const tx = player.x + dx, ty = player.y + dy;
+                            if (enemies.some(e => e.hp > 0 && e.x === tx && e.y === ty)) {
+                                list.push({x: tx, y: ty});
+                            }
+                        }
+                    }
+                }
+            } else if (selectedAction === 'EMP') {
+                for (let dy = -2; dy <= 2; dy++) {
+                    for (let dx = -2; dx <= 2; dx++) {
+                        const dist = Math.abs(dx) + Math.abs(dy);
+                        if (dist >= 1 && dist <= 2) {
+                            const tx = player.x + dx, ty = player.y + dy;
+                            if (enemies.some(e => e.hp > 0 && e.x === tx && e.y === ty)) {
+                                list.push({x: tx, y: ty});
+                            }
+                        }
+                    }
+                }
+            } else if (selectedAction === 'PHASE') {
+                for (let dy = -2; dy <= 2; dy++) {
+                    for (let dx = -2; dx <= 2; dx++) {
+                        const dist = Math.abs(dx) + Math.abs(dy);
+                        if (dist >= 1 && dist <= 2) {
+                            const tx = player.x + dx, ty = player.y + dy;
+                            if (tx >= 0 && tx < GRID_SIZE && ty >= 0 && ty < GRID_SIZE) {
+                                if (!enemies.some(e => e.hp > 0 && e.x === tx && e.y === ty)) {
+                                    list.push({x: tx, y: ty});
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (selectedAction === 'OVERCLOCK') {
+                if (player.energy > 0) list.push({x: player.x, y: player.y});
+            }
+            return list;
+        }
+
+        function selectAction(act) {
+            soundClick();
+            selectedAction = act;
+            document.querySelectorAll('.action-chip').forEach(c => c.classList.remove('active'));
+            const idMap = { 'MOVE': 'chip-move', 'BLADE': 'chip-blade', 'EMP': 'chip-emp', 'PHASE': 'chip-phase', 'OVERCLOCK': 'chip-overclock' };
+            document.getElementById(idMap[act])?.classList.add('active');
+            render();
+        }
+
+        function onTileTap(tx, ty) {
+            const valid = getValidTargets();
+            const match = valid.find(v => v.x === tx && v.y === ty);
+            if (!match) return;
+
+            if (selectedAction === 'MOVE' || selectedAction === 'PHASE') {
+                player.x = tx; player.y = ty;
+                player.ap--;
+                soundClick();
+                // Check tile pickups
+                const tileIdx = boardTiles.findIndex(t => t.x === tx && t.y === ty);
+                if (tileIdx >= 0) {
+                    const t = boardTiles[tileIdx];
+                    if (t.type === 'terminal') { player.chips += 25; log('💾 Decrypted Data Terminal (+25 Chips)'); }
+                    if (t.type === 'energy') { player.energy = Math.min(player.maxEnergy, player.energy + 1); log('⚡ Recharged Energy Core'); }
+                    boardTiles.splice(tileIdx, 1);
+                } else {
+                    log('Operative Repositioned.');
+                }
+                updateEnemyIntents();
+            } else if (selectedAction === 'BLADE') {
+                const enemy = enemies.find(e => e.hp > 0 && e.x === tx && e.y === ty);
+                if (enemy) {
+                    soundSlash();
+                    enemy.hp -= 2;
+                    player.ap--;
+                    const dx = tx - player.x, dy = ty - player.y;
+                    const kx = tx + dx, ky = ty + dy;
+
+                    if (kx < 0 || kx >= GRID_SIZE || ky < 0 || ky >= GRID_SIZE) {
+                        enemy.hp -= 1;
+                        soundImpact();
+                        log('💥 Knockback Wall Slam! (+1 Collision Damage)');
+                    } else {
+                        const occupant = enemies.find(e => e.hp > 0 && e.id !== enemy.id && e.x === kx && e.y === ky);
+                        if (occupant) {
+                            enemy.hp -= 1; occupant.hp -= 1;
+                            soundImpact();
+                            log('💥 Drone-on-Drone Collision Impact!');
+                        } else {
+                            enemy.x = kx; enemy.y = ky;
+                            log('⚔ Plasma Blade Push!');
+                        }
+                    }
+                    if (enemy.hp <= 0) log(`🎯 ${enemy.name} Neutralized!`);
+                    updateEnemyIntents();
+                }
+            } else if (selectedAction === 'EMP') {
+                const enemy = enemies.find(e => e.hp > 0 && e.x === tx && e.y === ty);
+                if (enemy) {
+                    soundEmp();
+                    enemy.stunned = true;
+                    enemy.intentTargets = [];
+                    player.ap--;
+                    log(`💫 ${enemy.name} EMP Stunned for 1 turn!`);
+                }
+            } else if (selectedAction === 'OVERCLOCK') {
+                if (player.energy > 0) {
+                    player.energy--;
+                    player.ap++;
+                    playTone(520, 'sine', 0.25, 0.3);
+                    log('⚡ Overclock Core Expended (+1 AP)!');
+                }
+            }
+
+            // Check victory
+            if (enemies.every(e => e.hp <= 0)) {
+                log('🏆 SECTOR CLEARED! Apex Mainframe Breached!');
+                player.chips += 50;
+            }
+
+            updateUI();
+            render();
+        }
+
+        function endTurn() {
+            soundLaser();
+            // Enemy turn resolution
+            enemies.forEach(e => {
+                if (e.hp <= 0) return;
+                if (e.stunned) { e.stunned = false; return; }
+                if (e.intentTargets.some(t => t.x === player.x && t.y === player.y)) {
+                    if (player.shield > 0) {
+                        player.shield = Math.max(0, player.shield - e.atk);
+                        log(`🛡 Shield Absorbed Strike from ${e.name}!`);
+                    } else {
+                        player.hp = Math.max(0, player.hp - e.atk);
+                        log(`⚠ Damage Taken: -${e.atk} HP from ${e.name}!`);
+                    }
+                } else if (e.type === 'scout' && e.intentTargets.length > 0) {
+                    const dest = e.intentTargets[0];
+                    if (!enemies.some(o => o.hp > 0 && o.x === dest.x && o.y === dest.y)) {
+                        e.x = dest.x; e.y = dest.y;
+                    }
+                }
+            });
+
+            if (player.hp <= 0) {
+                log('☠ OPERATIVE TERMINATED. Rebooting Simulation...');
+                setTimeout(resetGame, 1500);
+                return;
+            }
+
+            turn++;
+            player.ap = 2;
+            updateEnemyIntents();
+            updateUI();
+            render();
+        }
+
+        function resetGame() {
+            player = { x: 3, y: 5, hp: 6, maxHp: 6, shield: 1, energy: 3, maxEnergy: 3, ap: 2, chips: 0 };
+            enemies = [
+                { id: 1, type: 'scout', name: 'Scout Drone', x: 2, y: 1, hp: 2, maxHp: 2, atk: 1, intentTargets: [{x: 2, y: 2}], stunned: false },
+                { id: 2, type: 'sentinel', name: 'Laser Sentinel', x: 4, y: 1, hp: 3, maxHp: 3, atk: 2, intentTargets: [{x: 4, y: 2}, {x: 4, y: 3}, {x: 4, y: 4}, {x: 4, y: 5}], stunned: false }
+            ];
+            boardTiles = [
+                { x: 2, y: 2, type: 'terminal' },
+                { x: 2, y: 4, type: 'energy' }
+            ];
+            turn = 1;
+            selectedAction = 'MOVE';
+            log('SIMULATION RESET // READY');
+            updateEnemyIntents();
+            updateUI();
+            render();
+        }
+
+        function log(msg) {
+            document.getElementById('combatLog').innerText = msg;
+        }
+
+        function updateUI() {
+            document.getElementById('hpVal').innerText = `${player.hp}/${player.maxHp}`;
+            document.getElementById('shieldVal').innerText = `${player.shield}`;
+            document.getElementById('energyVal').innerText = `${player.energy}/${player.maxEnergy}`;
+            document.getElementById('apVal').innerText = `${player.ap}/2`;
+            document.getElementById('chipsCount').innerText = `💾 ${player.chips} CHIPS`;
+            const btn = document.getElementById('endTurnBtn');
+            if (player.ap === 0) btn.classList.add('highlight'); else btn.classList.remove('highlight');
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Grid Cells
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const isEven = (x + y) % 2 === 0;
+                    ctx.fillStyle = isEven ? '#0b132b' : '#050811';
+                    ctx.fillRect(x * CELL_SIZE + 2, y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+                    ctx.strokeStyle = '#18223b';
+                    ctx.strokeRect(x * CELL_SIZE + 2, y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+                }
+            }
+
+            // 2. Pickups
+            boardTiles.forEach(t => {
+                const cx = (t.x + 0.5) * CELL_SIZE, cy = (t.y + 0.5) * CELL_SIZE;
+                if (t.type === 'terminal') {
+                    ctx.fillStyle = '#ffb300';
+                    ctx.font = '20px sans-serif';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('💾', cx, cy);
+                } else if (t.type === 'energy') {
+                    ctx.fillStyle = '#00ff88';
+                    ctx.font = '22px sans-serif';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('⚡', cx, cy);
+                }
+            });
+
+            // 3. Telegraphed Enemy Laser Crosshairs
+            enemies.filter(e => e.hp > 0 && !e.stunned).forEach(e => {
+                const ox = (e.x + 0.5) * CELL_SIZE, oy = (e.y + 0.5) * CELL_SIZE;
+                e.intentTargets.forEach(t => {
+                    const tx = (t.x + 0.5) * CELL_SIZE, ty = (t.y + 0.5) * CELL_SIZE;
+                    ctx.strokeStyle = 'rgba(255, 51, 102, 0.7)';
+                    ctx.setLineDash([8, 6]);
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(ox, oy); ctx.lineTo(tx, ty);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    ctx.fillStyle = 'rgba(255, 51, 102, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, CELL_SIZE * 0.35, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#ff3366';
+                    ctx.stroke();
+                });
+            });
+
+            // 4. Valid Action Targets
+            const valid = getValidTargets();
+            valid.forEach(v => {
+                const cx = (v.x + 0.5) * CELL_SIZE, cy = (v.y + 0.5) * CELL_SIZE;
+                ctx.fillStyle = 'rgba(0, 240, 255, 0.25)';
+                ctx.beginPath();
+                ctx.arc(cx, cy, CELL_SIZE * 0.38, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#00f0ff';
+                ctx.setLineDash([6, 4]);
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                ctx.setLineDash([]);
+            });
+
+            // 5. Units
+            // Operative Vector
+            const px = (player.x + 0.5) * CELL_SIZE, py = (player.y + 0.5) * CELL_SIZE;
+            ctx.fillStyle = '#00f0ff';
+            ctx.beginPath();
+            ctx.arc(px, py, CELL_SIZE * 0.32, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#050811'; ctx.lineWidth = 3; ctx.stroke();
+
+            // HP Bar
+            ctx.fillStyle = '#ff3366';
+            ctx.fillRect(px - 18, py + 18, 36, 4);
+            ctx.fillStyle = '#00ff88';
+            ctx.fillRect(px - 18, py + 18, 36 * (player.hp / player.maxHp), 4);
+
+            // Enemies
+            enemies.filter(e => e.hp > 0).forEach(e => {
+                const ex = (e.x + 0.5) * CELL_SIZE, ey = (e.y + 0.5) * CELL_SIZE;
+                ctx.fillStyle = e.type === 'scout' ? '#ff3366' : '#ffb300';
+                ctx.beginPath();
+                ctx.arc(ex, ey, CELL_SIZE * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#050811'; ctx.lineWidth = 2.5; ctx.stroke();
+
+                if (e.stunned) {
+                    ctx.fillStyle = '#a855f7';
+                    ctx.font = '16px sans-serif';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('💫', ex, ey - 20);
+                }
+
+                // HP Bar
+                ctx.fillStyle = '#111c3a';
+                ctx.fillRect(ex - 16, ey + 18, 32, 4);
+                ctx.fillStyle = '#00ff88';
+                ctx.fillRect(ex - 16, ey + 18, 32 * (e.hp / e.maxHp), 4);
+            });
+        }
+
+        // Tap Handling
+        function handleInput(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+            const col = Math.floor(x / (rect.width / GRID_SIZE));
+            const row = Math.floor(y / (rect.height / GRID_SIZE));
+            if (col >= 0 && col < GRID_SIZE && row >= 0 && row < GRID_SIZE) {
+                onTileTap(col, row);
+            }
+        }
+
+        canvas.addEventListener('click', (e) => handleInput(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (e.touches.length > 0) handleInput(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        // Initial setup
+        updateEnemyIntents();
+        updateUI();
+        render();
+    </script>
+</body>
+</html>
